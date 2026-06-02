@@ -1,0 +1,1254 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f5fc2" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="数据库刷题" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icons/app-icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./icons/app-icon.svg" />
+  <title>数据库概论刷题台</title>
+  <style>
+    :root {
+      --ink: #182230;
+      --muted: #667085;
+      --line: #d7dce6;
+      --soft: #f4f7fb;
+      --card: rgba(255, 255, 255, 0.94);
+      --accent: #0f5fc2;
+      --accent-2: #14866d;
+      --accent-soft: #e8f1ff;
+      --ok: #07845f;
+      --ok-soft: #e7f7ef;
+      --bad: #c2352d;
+      --bad-soft: #fdeceb;
+      --warn: #a55b00;
+      --shadow: 0 18px 48px rgba(24, 34, 48, 0.13);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        linear-gradient(180deg, rgba(246,249,253,0.96), rgba(238,243,249,0.98)),
+        url("./pwa-background.svg");
+      background-size: cover;
+      background-position: center;
+    }
+
+    button, select { font: inherit; }
+
+    .app {
+      width: min(1240px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 24px 0 34px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      padding-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 46px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(78px, 1fr));
+      gap: 10px;
+      min-width: 520px;
+    }
+
+    .stat {
+      min-height: 74px;
+      border: 1px solid rgba(215,220,230,0.92);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.86);
+      box-shadow: 0 8px 24px rgba(24,34,48,0.08);
+      padding: 12px 14px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .stat strong {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto auto;
+      gap: 12px;
+      margin: 6px 0 14px;
+      padding: 12px;
+      border: 1px solid rgba(215,220,230,0.92);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.82);
+      box-shadow: 0 10px 30px rgba(24,34,48,0.08);
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: #fff;
+      padding: 0 12px;
+    }
+
+    .btn {
+      min-height: 42px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 0 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); border-color: var(--accent); }
+    .btn.primary { color: #fff; border-color: var(--accent); background: var(--accent); }
+    .btn.ghost { color: var(--accent); background: var(--accent-soft); border-color: #c8dbfb; }
+    .btn.active { color: #fff; border-color: var(--warn); background: var(--warn); }
+    .btn.danger { color: var(--bad); border-color: rgba(194,53,45,0.35); background: var(--bad-soft); }
+
+    .progress {
+      height: 10px;
+      border: 1px solid rgba(215,220,230,0.92);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.78);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .progress div {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 180ms ease;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .quiz {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .quiz-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(250,252,255,0.95);
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .pill.source {
+      color: #344054;
+      background: #eef2f7;
+    }
+
+    .status {
+      font-size: 18px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .question {
+      padding: 24px 24px 14px;
+    }
+
+    .question h2 {
+      margin: 0;
+      font-size: clamp(20px, 2.6vw, 28px);
+      line-height: 1.42;
+      letter-spacing: 0;
+    }
+
+    .options {
+      display: grid;
+      gap: 12px;
+      padding: 0 24px 18px;
+    }
+
+    .option {
+      display: grid;
+      grid-template-columns: 36px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+      min-height: 60px;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .option:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+      background: #fbfdff;
+    }
+
+    .option:disabled { cursor: default; }
+
+    .letter {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--soft);
+      font-weight: 900;
+    }
+
+    .mark {
+      min-width: 28px;
+      font-size: 22px;
+      text-align: right;
+    }
+
+    .option.correct { border-color: rgba(7,132,95,0.55); background: var(--ok-soft); }
+    .option.correct .letter { color: #fff; border-color: var(--ok); background: var(--ok); }
+    .option.wrong { border-color: rgba(194,53,45,0.55); background: var(--bad-soft); }
+    .option.wrong .letter { color: #fff; border-color: var(--bad); background: var(--bad); }
+
+    .explain {
+      display: none;
+      margin: 0 24px 22px;
+      padding: 15px 16px;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      background: #f7fbff;
+      color: #344054;
+      line-height: 1.65;
+    }
+
+    .explain strong { color: var(--accent); }
+
+    .work-area {
+      display: grid;
+      gap: 12px;
+      padding: 0 24px 18px;
+    }
+
+    .blank-input,
+    .answer-box {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+    }
+
+    .blank-input {
+      min-height: 46px;
+      padding: 0 13px;
+    }
+
+    .answer-box {
+      min-height: 150px;
+      resize: vertical;
+      padding: 12px 13px;
+      line-height: 1.6;
+    }
+
+    .answer-card {
+      display: none;
+      padding: 15px 16px;
+      border: 1px solid #c8dbfb;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      background: #f7fbff;
+      color: #344054;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    .answer-card strong {
+      color: var(--accent);
+    }
+
+    .self-actions {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn.ok { color: #fff; border-color: var(--ok); background: var(--ok); }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px;
+      border-top: 1px solid var(--line);
+      background: rgba(250,252,255,0.95);
+    }
+
+    .side {
+      display: grid;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 10px 30px rgba(24,34,48,0.1);
+      padding: 16px;
+    }
+
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .grid-nav {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+      max-height: 320px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .nav-q {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .nav-q.current { color: #fff; border-color: var(--accent); background: var(--accent); }
+    .nav-q.ok { border-color: rgba(7,132,95,0.4); background: var(--ok-soft); color: var(--ok); }
+    .nav-q.bad { border-color: rgba(194,53,45,0.4); background: var(--bad-soft); color: var(--bad); }
+    .nav-q.current.ok, .nav-q.current.bad { color: #fff; background: var(--accent); border-color: var(--accent); }
+
+    .breakdown {
+      display: grid;
+      gap: 8px;
+    }
+
+    .break-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 14px;
+    }
+
+    .break-item strong { color: var(--accent); }
+
+    .wrong-list {
+      display: grid;
+      gap: 8px;
+      max-height: 300px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .wrong-item {
+      display: grid;
+      gap: 5px;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid rgba(194,53,45,0.24);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .wrong-item:hover {
+      border-color: var(--bad);
+      background: #fff8f8;
+    }
+
+    .wrong-item strong {
+      color: var(--bad);
+      font-size: 13px;
+    }
+
+    .wrong-item span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .empty {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    @media (max-width: 940px) {
+      header, main { grid-template-columns: 1fr; }
+      .stats { min-width: 0; }
+    }
+
+    @media (max-width: 640px) {
+      .app { width: min(100vw - 18px, 1240px); padding-top: 16px; }
+      .stats, .toolbar { grid-template-columns: 1fr 1fr; }
+      .toolbar .btn { grid-column: 1 / -1; }
+      .quiz-head { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      .option { grid-template-columns: 32px 1fr auto; }
+      .letter { width: 32px; height: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>数据库概论刷题台</h1>
+        <p class="subtitle">已录入数据库卷中可识别的选择、填空、判断和简答题；主观题先作答，再显示参考答案并自评。</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>当前</span><strong id="count">1 / 110</strong></div>
+        <div class="stat"><span>已答</span><strong id="done">0</strong></div>
+        <div class="stat"><span>正确</span><strong id="right">0</strong></div>
+        <div class="stat"><span>错题</span><strong id="wrongCount">0</strong></div>
+        <div class="stat"><span>正确率</span><strong id="rate">0%</strong></div>
+      </div>
+    </header>
+
+    <section class="toolbar">
+      <div class="field">
+        <label for="sourceFilter">按试卷筛选</label>
+        <select id="sourceFilter"></select>
+      </div>
+      <div class="field">
+        <label for="topicFilter">按知识点筛选</label>
+        <select id="topicFilter"></select>
+      </div>
+      <button class="btn" id="wrongMode" type="button">只看错题</button>
+      <button class="btn ghost" id="shuffle" type="button">随机顺序</button>
+    </section>
+
+    <div class="progress"><div id="bar"></div></div>
+
+    <main>
+      <section class="quiz" aria-live="polite">
+        <div class="quiz-head">
+          <div class="meta">
+            <span class="pill source" id="source"></span>
+            <span class="pill" id="topic"></span>
+          </div>
+          <strong class="status" id="status">请选择一个答案</strong>
+        </div>
+        <div class="question">
+          <h2 id="question"></h2>
+        </div>
+        <div class="options" id="options"></div>
+        <p class="explain" id="explain"></p>
+        <div class="actions">
+          <button class="btn" id="prev" type="button">上一题</button>
+          <button class="btn primary" id="next" type="button">下一题</button>
+          <button class="btn" id="reset" type="button">重置答题</button>
+        </div>
+      </section>
+
+      <aside class="side">
+        <div class="panel">
+          <h3>题号导航</h3>
+          <div class="grid-nav" id="nav"></div>
+        </div>
+        <div class="panel">
+          <h3>知识点统计</h3>
+          <div class="breakdown" id="breakdown"></div>
+        </div>
+        <div class="panel">
+          <h3>我的错题</h3>
+          <div class="wrong-list" id="wrongList"></div>
+          <button class="btn danger" id="clearWrong" type="button" style="width:100%; margin-top:12px;">清空错题本</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const q = (source, no, topic, text, options, answer, explain) => ({
+      type: "choice", source, no, topic, text, options, answer: "ABCD".indexOf(answer), explain
+    });
+    const blank = (source, no, topic, text, answers, explain) => ({
+      type: "blank", source, no, topic, text, answers, explain
+    });
+    const judge = (source, no, topic, text, answer, explain) => ({
+      type: "judge", source, no, topic, text, answer, explain
+    });
+    const short = (source, no, topic, text, sample, explain = "主观题按意思评分：核心概念、关键关系和表达逻辑对即可。") => ({
+      type: "short", source, no, topic, text, sample, explain
+    });
+
+    const allQuestions = [
+      q("2025 A卷", "1", "关系代数", "分别用于实现关系代数投影运算和选择运算的 SQL 子句是？", ["SELECT 和 WHERE", "FROM 和 SELECT", "SELECT 和 FROM", "WHERE 和 SELECT"], "A", "投影是取列，对应 SELECT；选择是取满足条件的行，对应 WHERE。"),
+      q("2025 A卷", "2", "SQL 分类", "下述选项中，哪一项不是数据操纵语句？", ["INSERT", "UPDATE", "DELETE", "CREATE"], "D", "INSERT、UPDATE、DELETE 是 DML；CREATE 是 DDL，用来定义数据库对象。"),
+      q("2025 A卷", "3", "关系代数", "设关系模式 R(X,Y) 和 S(Y,Z)，若 R 有 n 个元组、S 有 m 个元组，则 R ÷ S 所得关系中元组数量不可能为？", ["m", "m + n", "0", "m - n"], "B", "除法结果来自 R 中能匹配 S 全部相关值的 X，结果规模不会简单等于 m+n。"),
+      q("2025 A卷", "4", "E-R 转换", "从 E-R 模型向关系模型转换时，一个 M:N 联系转为关系模式时，该关系模式的主码是？", ["M 端实体型的主码", "N 端实体型的主码", "M 端实体型主码与 N 端实体型主码的组合", "其他"], "C", "多对多联系需要单独成表，主码通常由两端实体主码共同组成。"),
+      q("2025 A卷", "5", "并发控制", "若事务 T 对数据对象 R 实行 X 封锁，则 T 对 R 可以？", ["只能读不能写", "只能写不能读", "既可读又可写", "不能读也不能写"], "C", "X 锁是排他锁，加锁事务自己可以读写，被排斥的是其他事务。"),
+      q("2025 A卷", "6", "并发控制", "解决由并发控制带来的数据不一致问题时，普通采用的技术是？", ["封锁", "存取控制", "恢复", "协商"], "A", "并发不一致通常靠封锁协议等并发控制技术处理。"),
+      q("2025 A卷", "7", "连接运算", "关系 R 与关系 S 只有 1 个公共属性，T1 是 R 与 S 等值连接结果，T2 是 R 与 S 自然连接结果，则？", ["T1 的属性个数 = T2 的属性个数", "T1 的属性个数 < T2 的属性个数", "T1 的属性个数 > T2 的属性个数", "T1 的属性个数 ≥ T2 的属性个数"], "C", "等值连接保留两个参与比较的公共属性，自然连接会去掉重复公共属性。"),
+      q("2025 A卷", "8", "规范化", "关系数据库的规范化理论主要解决的问题是？", ["如何构造合适的数据逻辑结构", "如何构造合适的数据物理结构", "如何构造合适的应用程序界面", "如何控制不同用户的数据操作权限"], "A", "规范化研究关系模式是否合理，属于逻辑结构设计。"),
+      q("2025 A卷", "9", "SQL 空值", "SQL 语句中，下列涉及空值的操作，不正确的是？", ["AGE IS NULL", "AGE IS NOT NULL", "AGE = NULL", "NOT (AGE IS NULL)"], "C", "NULL 不能用 = 比较，应使用 IS NULL 或 IS NOT NULL。"),
+      q("2025 A卷", "10", "规范化", "2NF 规范到 3NF 是为了消除？", ["非主属性对码的部分函数依赖", "主属性对码的部分函数依赖", "非主属性对码的传递函数依赖", "以上都不是"], "C", "2NF 消除部分依赖，3NF 进一步消除非主属性对码的传递依赖。"),
+      q("2025 A卷", "11", "数据独立性", "为了保证数据的物理独立性，需要修改的是？", ["模式", "模式与内模式之间的映像", "外模式", "模式与外模式之间的映像"], "B", "内模式变化由模式/内模式映像吸收，从而保证物理独立性。"),
+      q("2025 A卷", "12", "SQL 查询", "SELECT 语句中每行只写一个子句，若有 ORDER BY 子句，则其应在？", ["SELECT 子句的下一行", "WHERE 子句的下一行", "最后一行", "任意一行"], "C", "ORDER BY 用于最终排序，书写时通常放在查询语句最后。"),
+      q("2025 A卷", "13", "子查询", "以下关于相关子查询的描述中，正确的是？", ["先执行子查询", "子查询的查询条件与父查询中数据表无关", "父查询和子查询交替执行", "子查询执行一次"], "C", "相关子查询依赖外层查询当前行，通常随外层行反复求值。"),
+      q("2025 A卷", "14", "关系模型", "下列关于关系的理解，错误的是？", ["在一个关系中，可以任意交换两个元组的顺序", "在一个关系中，可以任意交换两个列的顺序", "每个列必须有自己的名字且必须取自不同的域", "关系中的属性不可再分"], "C", "列名应唯一，但不同属性可以取自同一域，例如两个日期字段。"),
+      q("2025 A卷", "15", "关系异常", "设有关系模式：选修(学号, 教师号, 课程号, 成绩)，主码为学号和课程号。若学生 A 没有选修任何课程，则该关系模式存在的问题是？", ["数据冗余", "删除异常", "更新异常", "插入异常"], "D", "没有课程号时无法插入单独的学生信息，这是插入异常。"),
+      q("2025 A卷", "16", "并发异常", "事务 T 将数据 R 更新为 Q 后，事务 P 读取 Q，之后事务 T 又撤销了对 R 的更新，该过程产生的问题是？", ["丢失更新", "不可重复读", "读脏数据", "数据冗余"], "C", "P 读到了后来被回滚的数据，这就是脏读。"),
+      q("2025 A卷", "17", "概念模型", "属于信息世界的模型，是现实世界到计算机世界的一个中间层次的是？", ["数据模型", "概念模型", "关系模型", "层次模型"], "B", "概念模型用于描述信息世界，E-R 模型就是典型概念模型。"),
+      q("2025 A卷", "18", "事务", "事务的原子性是指？", ["事务一旦提交，对数据库的改变是永久的", "事务中包括的所有操作要么都做，要么都不做", "事务内部操作及使用的数据对并发事务隔离", "事务必须使数据库从一个一致性状态到另一个一致性状态"], "B", "原子性强调事务作为不可分割单位，要么全成功，要么全撤销。"),
+      q("2025 A卷", "19", "SQL DDL", "在 SQL 语句中，修改数据表结构应使用？", ["ALTER", "CREATE", "CHANGE", "EDIT"], "A", "ALTER TABLE 用于修改表结构。"),
+      q("2025 A卷", "20", "主码", "下列关于关系中主属性的描述，错误的是？", ["主码所包含的属性一定是主属性", "参照关系中外码所引用的属性一定是被参照关系的主属性", "候选码所包含的属性都是主属性", "每个主属性都可以唯一地标识表中的一个元组"], "D", "组合候选码中的单个主属性未必能唯一标识元组。"),
+      q("2025 A卷", "21", "视图", "下列关于视图的说法，正确的是？", ["视图与基本表一样，也存储数据", "对视图的操作最终都转换为对基本表的操作", "视图的数据源只能是基本表", "所有视图都可以实现对数据的增、删、改、查操作"], "B", "视图是虚表，查询和可更新视图的操作最终落实到基本表。"),
+      q("2025 A卷", "22", "函数依赖", "设 F 是某关系模式的极小函数依赖集，则下列关于 F 的说法错误的是？", ["F 中每个函数依赖的右部都必须是单个属性", "F 中每个函数依赖的左部都必须是单个属性", "F 中不能有冗余的函数依赖", "F 中每个函数依赖的左部不能有冗余属性"], "B", "极小依赖集要求右部单属性、无冗余依赖、左部无冗余属性，但左部不一定是单属性。"),
+      q("2025 A卷", "23", "E-R 联系", "一个银行可以有多个客户，一个客户也可以在多个银行进行存取款业务，则客户和银行之间的联系是？", ["一对多", "一对一", "多对一", "多对多"], "D", "两边都可以对应多个对方实体，因此是多对多。"),
+      q("2025 A卷", "24", "数据库设计", "在数据库设计中，进行用户子模式设计是在什么阶段要完成的工作？", ["需求分析", "概念结构设计", "逻辑结构设计", "物理结构设计"], "C", "用户子模式/外模式属于逻辑结构设计阶段的重要内容。"),
+      q("2025 A卷", "25", "关系代数", "下列用于表达关系代数中投影运算的运算符是？", ["σ", "π", "∞", "×"], "B", "σ 表示选择，π 表示投影。"),
+      q("2025 A卷", "26", "关系操作", "下列关于关系操作的说法，正确的是？", ["关系操作是基于集合的操作", "用户可以在关系上直接进行行定位操作", "进行关系操作时，用户需要知道数据的存储位置", "进行关系操作时，用户需要知道数据的存储结构"], "A", "关系操作面向集合，用户不需要关心物理存储位置。"),
+      q("2025 A卷", "27", "主码", "设有关系模式：销售(顾客号, 商品号, 销售时间, 销售数量)。若顾客可多次购买同一产品，同一时间可买多种商品，则主码是？", ["顾客号", "产品号", "(顾客号, 商品号)", "(顾客号, 商品号, 销售时间)"], "D", "同一顾客同一商品可能多次购买，需要销售时间一起区分。"),
+      q("2025 A卷", "28", "封锁协议", "二级封锁协议可以解决的数据不一致问题包括？", ["只有丢失修改", "只有丢失修改与读“脏”数据", "只有丢失修改与不可重复读", "只有读“脏”数据与不可重复读"], "B", "二级封锁协议能防止丢失修改和脏读，但不能完全防止不可重复读。"),
+      q("2025 A卷", "29", "三级模式", "能够给出数据库物理存储结构与物理存取方法的是？", ["外模式", "内模式", "概念模式", "逻辑模式"], "B", "内模式描述物理存储结构和存取方法。"),
+      q("2025 A卷", "30", "数据冗余", "在数据库中，产生数据不一致的根本原因是？", ["数据存储量过大", "缺乏数据保护机制", "数据冗余", "缺乏数据安全性机制"], "C", "冗余会导致同一事实有多个副本，修改不一致就会产生数据不一致。"),
+
+      q("2024 B卷", "1", "概念模型", "描述现实世界第一层抽象的模型是？", ["层次模型", "关系模型", "概念模型", "网状模型"], "C", "概念模型是现实世界到机器世界之间的第一层抽象。"),
+      q("2024 B卷", "2", "SQL DDL", "下列 SQL 语句中，修改表结构的语句是？", ["DROP", "CREATE", "UPDATE", "ALTER"], "D", "ALTER 用于修改表结构，UPDATE 修改表中的数据。"),
+      q("2024 B卷", "3", "连接运算", "关系代数中的 θ 连接运算是由哪些操作组合而成？", ["π 和 ×", "σ 和 π", "σ、π 和 ×", "σ 和 ×"], "D", "θ 连接可以看作对笛卡尔积结果进行选择。"),
+      q("2024 B卷", "4", "集合运算", "进行传统集合运算的两个关系必须具有？", ["相同的属性个数", "相同的关系名", "相同的目，且对应属性来自相同的域", "公共属性"], "C", "并、交、差要求两个关系并相容。"),
+      q("2024 B卷", "5", "关系模型", "关系是哪些对象的集合？", ["元组或记录", "字段", "列", "二维表"], "A", "关系由元组组成，通常表现为二维表。"),
+      q("2024 B卷", "6", "安全性", "数据库管理系统通过授权机制控制不同用户访问数据库的权限，实现了数据库的？", ["可靠性", "一致性", "完整性", "安全性"], "D", "授权和权限控制属于数据库安全性控制。"),
+      q("2024 B卷", "7", "数据模型", "数据模型的三要素是指？", ["插入数据、修改数据、删除数据", "实体完整性、参照完整性、用户定义完整性", "数据结构、数据操作、数据完整性约束条件", "外模式、模式、内模式"], "C", "数据模型由数据结构、数据操作和完整性约束组成。"),
+      q("2024 B卷", "8", "三级模式", "描述数据库全体数据的逻辑结构和特性的是？", ["外模式", "模式", "内模式", "物理模式"], "B", "模式也叫概念模式，描述数据库全局逻辑结构。"),
+      q("2024 B卷", "9", "数据独立性", "要保证数据库的物理数据独立性，需要修改的是？", ["模式与外模式之间的映像", "模式", "模式与内模式之间的映像", "三级模式"], "C", "物理存储改变时，通过修改模式/内模式映像保持逻辑模式不变。"),
+      q("2024 B卷", "10", "数据库设计", "在数据库设计中，设计内模式应在什么阶段？", ["需求分析阶段", "概念设计阶段", "逻辑设计阶段", "物理设计阶段"], "D", "内模式涉及存储结构和存取方法，属于物理设计。"),
+      q("2024 B卷", "11", "完整性", "“成绩在 0-100 之间”这种约束属于哪种完整性？", ["实体完整性", "参照完整性", "用户定义的完整性", "全不是"], "C", "取值范围约束通常属于用户自定义完整性。"),
+      q("2024 B卷", "12", "SQL 分类", "查询表、插入元组和修改属性值属于哪类 SQL 命令？", ["DDL", "DML", "DCL", "DQL"], "B", "插入、修改等数据操纵属于 DML；查询有时单列 DQL，但本题合并考 DML。"),
+      q("2024 B卷", "13", "候选码", "关系模式 R(A,B,C) 中有函数依赖 F={AB→C, BC→A}，则 R 的候选码有几个？", ["0", "1", "2", "3"], "C", "AB 可推出 C，BC 可推出 A；AB 与 BC 都是候选码。"),
+      q("2024 B卷", "14", "子查询", "下列哪种运算不能引出子查询？", ["LIKE", "IN", "比较运算", "EXISTS"], "A", "IN、EXISTS 和比较运算常与子查询配合，LIKE 通常不用于引出子查询。"),
+      q("2024 B卷", "15", "触发器", "下列哪种操作不会激活触发器？", ["DELETE", "UPDATE", "SELECT", "INSERT"], "C", "常见触发器由 INSERT、UPDATE、DELETE 等数据修改事件激活。"),
+      q("2024 B卷", "16", "参照完整性", "关于参照完整性，下列说法中不正确的是？", ["外码可以为空", "外码的值可以等于被引用列中的某个值", "外码的类型应与被引用列类型相容", "外码列的名称必须与被引用列的名称相同"], "D", "外码列名可以不同，关键是语义引用和类型相容。"),
+      q("2024 B卷", "17", "E-R 转换", "在 E-R 图中，若有 1 个二元 1:1 联系和 2 个二元 M:N 联系，4 个不同实体型，至少可转换为几个关系模式？", ["6", "5", "4", "3"], "A", "4 个实体各成表，2 个 M:N 联系各成表，1:1 可并入实体表，共 6 个。"),
+      q("2024 B卷", "18", "范式", "若 R ∈ 3NF，则 R 的每个什么应满足完全且直接依赖于码？", ["主属性", "主属性的一部分", "非主属性", "非主属性的一部分"], "C", "3NF 关注非主属性不能部分依赖或传递依赖于码。"),
+      q("2024 B卷", "19", "安全性", "SQL 语句中的 GRANT 和 REVOKE 可以用来实现？", ["数据库角色创建", "自主存取控制", "强制存取控制", "数据库审计"], "B", "GRANT/REVOKE 用于授权与收回权限，是自主存取控制。"),
+      q("2024 B卷", "20", "故障恢复", "以下哪种故障可能破坏数据库？", ["输入错误数据", "介质故障", "程序故障", "事务内部故障"], "B", "介质故障可能直接破坏数据库存储介质上的数据。"),
+
+      q("2023 A卷", "1", "数据模型", "目前使用的数据库系统的数据模型大多属于？", ["层次模型", "关系模型", "网状模型", "面向对象模型和对象关系模型"], "B", "主流数据库系统主要采用关系模型或对象关系模型，本题标准答案为关系模型。"),
+      q("2023 A卷", "2", "关系模型", "二维表中的行在关系术语中是指？", ["元组", "字段", "列", "关系实例"], "A", "表的一行称为元组或记录。"),
+      q("2023 A卷", "3", "关系数据库", "关系数据库是哪些对象的集合？", ["行或记录", "字段", "列", "二维表"], "D", "关系数据库由多个关系组成，关系通常表示为二维表。"),
+      q("2023 A卷", "4", "三级模式", "描述数据库用户能够看见和使用的局部数据的逻辑结构和特性的是？", ["内模式", "模式", "外模式", "物理模式"], "C", "外模式是特定用户看到的局部逻辑视图。"),
+      q("2023 A卷", "5", "概念模型", "概念模型是现实世界的第一层抽象，这一类模型中最著名的是？", ["层次模型", "关系模型", "E-R 模型", "网状模型"], "C", "E-R 模型是最常见的概念模型。"),
+      q("2023 A卷", "6", "SQL DML", "SQL 语句 DELETE FROM X; 意味着？", ["删除表 X", "删除列", "删除字段", "删除表 X 中的记录"], "D", "DELETE FROM 表名 删除表中的行，不删除表结构。"),
+      q("2023 A卷", "7", "连接运算", "关系代数中的 θ 连接运算是由哪些操作组合而成？", ["π 和 ×", "σ 和 π", "σ、π 和 ×", "σ 和 ×"], "D", "θ 连接等价于对笛卡尔积进行条件选择。"),
+      q("2023 A卷", "8", "自然连接", "进行自然连接运算的两个关系必须具有？", ["相同的属性个数", "相同的关系名", "相同关键字", "公共属性"], "D", "自然连接按同名公共属性进行匹配。"),
+      q("2023 A卷", "9", "数据独立性", "要保证数据库的逻辑数据独立性，需要修改的是？", ["模式与外模式之间的映像", "模式与内模式之间的映像", "模式", "三级模式"], "A", "逻辑模式改变时，通过修改外模式/模式映像保证外模式和应用尽量不变。"),
+      q("2023 A卷", "10", "子查询", "下列哪种运算不能引出子查询？", ["LIKE", "IN", "比较运算", "EXISTS"], "A", "IN、EXISTS、比较运算可与子查询配合，LIKE 一般不作为子查询引出运算。"),
+      q("2023 A卷", "11", "触发器", "下列哪种操作不会激活触发器？", ["SELECT", "UPDATE", "DELETE", "INSERT"], "A", "查询不修改数据，通常不会触发基于数据修改的触发器。"),
+      q("2023 A卷", "12", "参照完整性", "关于参照完整性，下列说法中不正确的是？", ["外码可以为空", "外码的值应等于被引用列中的某个值", "外码的类型应与被引用列类型相容", "外码列的名称必须与被引用列的名称相同"], "D", "外码列名不要求与被引用列同名。"),
+      q("2023 A卷", "13", "外码", "在关系模式 R(R#, RN, S#) 和 S(S#, SN, SD) 中，R 的主码是 R#，S 的主码是 S#，则 S# 在 R 中称为？", ["主码", "超码", "候选码", "外码"], "D", "R.S# 引用 S.S#，因此是 R 的外码。"),
+      q("2023 A卷", "14", "视图", "在数据库设计中，为不同用户设计数据视图应在什么阶段？", ["需求分析阶段", "概念设计阶段", "逻辑设计阶段", "物理设计阶段"], "C", "用户视图/外模式属于逻辑设计内容。"),
+      q("2023 A卷", "15", "完整性", "“学分在 1-4 之间”这种约束属于哪种完整性？", ["实体完整性", "参照完整性", "用户定义的完整性", "全不是"], "C", "业务取值范围约束属于用户定义完整性。"),
+      q("2023 A卷", "16", "SQL 分类", "创建表、删除表和修改表属于哪类 SQL 命令？", ["DML", "DDL", "DQL", "Relational Schema"], "B", "CREATE、DROP、ALTER 属于数据定义语言 DDL。"),
+      q("2023 A卷", "17", "范式", "关系模式 R(A,B,C) 中有函数依赖 F={AB→C, BC→A}，则 R 最高可达到？", ["1NF", "2NF", "3NF", "BCNF"], "D", "AB 和 BC 都是候选码，非平凡依赖的左部都是超码，因此满足 BCNF。"),
+      q("2023 A卷", "18", "E-R 转换", "在 E-R 图中，若有 2 个二元 M:N 联系和 1 个二元 1:N 联系，3 个不同实体型，至少可转换为几个关系模式？", ["3", "4", "5", "6"], "C", "3 个实体各成表，2 个 M:N 联系单独成表，1:N 可并入 N 端，共 5 个。"),
+      q("2023 A卷", "19", "范式", "若 R ∈ 2NF，则 R 的每个什么应满足完全依赖于码？", ["主属性部分依赖于码", "主属性完全依赖于码", "非主属性部分依赖于码", "非主属性完全依赖于码"], "D", "2NF 要求每个非主属性完全函数依赖于候选码。"),
+      q("2023 A卷", "20", "规范化", "关系数据库的规范化理论主要解决的问题是？", ["如何构造合适的数据库物理结构", "如何构造合适的数据库逻辑结构", "如何构造合适的应用程序界面", "如何控制不同用户的数据操作权限"], "B", "规范化服务于关系模式的逻辑结构优化。"),
+
+      q("A卷组1", "1", "数据库系统", "数据库(DB)、数据库管理系统(DBMS) 和数据库系统(DBS)之间的关系是？", ["DBMS 包括 DB 和 DBS", "DBS 包括 DB 和 DBMS", "DB 包括 DBMS 和 DBS", "DBS 就是 DB"], "B", "数据库系统 DBS 通常包括数据库 DB、DBMS、应用程序、用户等。"),
+      q("A卷组1", "2", "三级模式", "数据库的三级模式中，描述数据库全局逻辑结构和特征的是？", ["外模式", "模式", "内模式", "以上三类模式"], "B", "模式描述数据库全体数据的逻辑结构。"),
+      q("A卷组1", "3", "概念模型", "概念模型是现实世界的第一层抽象，下面哪个是概念模型？", ["层次模型", "关系模型", "网状模型", "E-R 模型"], "D", "E-R 模型用于概念设计，属于概念模型。"),
+      q("A卷组1", "4", "关系模型", "对于关系，下列说法中不正确的是？", ["关系中每个属性值都是不可分解的", "关系中不允许出现相同的元组", "关系中的属性是有序的", "关系中不考虑元组间的顺序"], "C", "关系模型中属性可按名称引用，理论上不强调属性顺序。"),
+      q("A卷组1", "5", "数据模型", "数据模型的三个要素是指？", ["实体完整性、参照完整性、用户自定义完整性", "数据结构、数据操作、数据完整性约束条件", "插入数据、修改数据、删除数据", "外模式、模式、内模式"], "B", "数据模型三要素是结构、操作和完整性约束。"),
+      q("A卷组1", "6", "数据独立性", "数据的逻辑独立性是指？", ["外模式不变时不必修改应用程序", "外模式改变时应修改应用程序", "模式改变时保持外模式不变", "内模式改变时保持模式不变"], "C", "逻辑独立性强调模式变化时外模式和应用尽量不变。"),
+      q("A卷组1", "7", "连接运算", "关系代数中的 θ 连接运算是由哪些操作组合而成？", ["π 和 ×", "σ 和 π", "σ、π 和 ×", "σ 和 ×"], "D", "θ 连接等价于在笛卡尔积上加选择条件。"),
+      q("A卷组1", "8", "实体完整性", "根据关系模式的实体完整性规则，一个关系的主属性？", ["不能有两个", "不能成为另一个关系的外码", "不允许为空", "可以取任意值"], "C", "实体完整性要求主码中的属性不能为空。"),
+      q("A卷组1", "9", "SQL DDL", "下列 SQL 语句中，修改表结构的语句是？", ["CREATE", "ALTER", "UPDATE", "INSERT"], "B", "ALTER 用于修改表结构。"),
+      q("A卷组1", "10", "事务控制", "下列哪个语句不是显式事务的控制语句？", ["BEGIN TRANSACTION", "ROLLBACK", "COMMIT", "END"], "D", "BEGIN、COMMIT、ROLLBACK 是事务控制语句，END 不是常用事务控制命令。"),
+      q("A卷组1", "11", "自然连接", "进行自然连接运算的两个关系必须具有？", ["相同的属性个数", "相同的关系名", "相同关键字", "公共属性"], "D", "自然连接基于公共属性匹配。"),
+      q("A卷组1", "12", "完整性", "“年龄在 18-60 之间”这种约束属于哪种完整性？", ["实体完整性", "参照完整性", "用户定义的完整性", "全不是"], "C", "取值范围属于用户定义完整性。"),
+      q("A卷组1", "13", "数据库设计", "在数据库设计中，将 E-R 图转换为关系模式的过程属于？", ["需求分析阶段", "概念设计阶段", "逻辑设计阶段", "物理设计阶段"], "C", "E-R 图转关系模式是从概念模型到逻辑模型，属于逻辑设计。"),
+      q("A卷组1", "14", "外码", "在关系模式 R(R#, RN, S#) 和 S(S#, SN, SD) 中，R 的主码是 R#，S 的主码是 S#，则 S# 在 R 中称为？", ["主码", "超码", "候选码", "外码"], "D", "S# 在 R 中引用 S 的主码，因此是外码。"),
+      q("A卷组1", "15", "子查询", "下列哪种运算不能引出子查询？", ["LIKE", "IN", "比较运算", "EXISTS"], "A", "LIKE 通常不作为子查询引出运算。"),
+      q("A卷组1", "16", "E-R 联系", "工厂的每个销售员可推销多种产品，销售员与产品之间的联系是？", ["一对一联系", "一对多联系", "多对多联系", "不能确定联系"], "C", "一个销售员对应多个产品，一个产品也可由多个销售员推销，通常为多对多。"),
+      q("A卷组1", "17", "范式", "关系模式 R(A,B,C,D) 中有函数依赖集 F={D→A, A→B, A→C}，则 R 最高可达到？", ["1NF", "2NF", "3NF", "BCNF"], "B", "D 是候选码，A→B、A→C 形成非主属性对码的传递依赖，所以达不到 3NF。"),
+      q("A卷组1", "18", "E-R 转换", "若有 4 个不同实体型、3 个二元 M:N 联系和 2 个二元 1:N 联系，至少可转换为几个关系模式？", ["6", "7", "5", "9"], "B", "4 个实体成表，3 个 M:N 联系单独成表，1:N 不必单独成表，共 7 个。"),
+      q("A卷组1", "19", "范式", "若 R ∈ 2NF，则 R 的每个什么应满足完全依赖于候选码？", ["主属性部分依赖于候选码", "主属性完全依赖于候选码", "非主属性部分依赖于候选码", "非主属性完全依赖于候选码"], "D", "2NF 的核心就是非主属性不能部分依赖于候选码。"),
+      q("A卷组1", "20", "规范化", "关系数据库的规范化理论主要解决的问题是？", ["如何构造合适的数据库物理结构", "如何构造合适的数据库逻辑结构", "如何构造合适的应用程序界面", "如何控制不同用户的数据操作权限"], "B", "规范化用于优化关系模式的逻辑结构。"),
+
+      q("A卷组2", "1", "数据模型", "目前使用的数据库系统的数据模型大多属于？", ["层次模型", "网状模型", "关系模型", "面向对象模型和对象关系模型"], "C", "大量数据库课程默认主流模型为关系模型。"),
+      q("A卷组2", "2", "概念模型", "概念模型是现实世界的第一层抽象，下面哪个是概念模型？", ["层次模型", "关系模型", "E-R 模型", "网状模型"], "C", "E-R 模型是概念模型。"),
+      q("A卷组2", "3", "关系模型", "对于关系，下列说法中不正确的是？", ["关系中每个属性值都是不可分解的", "关系中不允许出现相同的元组", "关系中的属性是有序的", "关系中不考虑元组间的顺序"], "C", "关系中元组和属性的理论顺序不作为语义依据。"),
+      q("A卷组2", "4", "三级模式", "描述数据库全体数据的全局逻辑结构和特性的是？", ["内模式", "模式", "外模式", "以上三类模式"], "B", "模式描述数据库全局逻辑结构。"),
+      q("A卷组2", "5", "SQL DDL", "下列 SQL 语句中，修改表结构的是？", ["CREATE", "ALTER", "UPDATE", "INSERT"], "B", "ALTER TABLE 修改表结构。"),
+      q("A卷组2", "6", "连接运算", "关系代数中的 θ 连接运算是由哪些操作组合而成？", ["π 和 ×", "σ 和 π", "σ、π 和 ×", "σ 和 ×"], "D", "θ 连接是对笛卡尔积进行选择。"),
+      q("A卷组2", "7", "自然连接", "进行自然连接运算的两个关系必须具有？", ["相同的属性个数", "相同的关系名", "相同关键字", "公共属性"], "D", "自然连接必须基于公共属性。"),
+      q("A卷组2", "8", "数据独立性", "数据的逻辑独立性是指？", ["外模式不变时不必修改应用程序", "外模式改变时应修改应用程序", "内模式改变时保持模式不变", "模式改变时保持外模式不变"], "D", "逻辑独立性强调模式变化时外模式不受影响。"),
+      q("A卷组2", "9", "子查询", "下列哪种运算不能引出子查询？", ["LIKE", "IN", "比较运算", "EXISTS"], "A", "LIKE 一般不引出子查询。"),
+      q("A卷组2", "10", "触发器", "下列哪种操作不会激活触发器？", ["SELECT", "UPDATE", "DELETE", "INSERT"], "A", "SELECT 不改变数据，通常不会激活 DML 触发器。"),
+      q("A卷组2", "11", "聚集函数", "下列聚集函数中不忽略空值的是？", ["SUM(列名)", "COUNT(*)", "MAX(列名)", "AVG(列名)"], "B", "COUNT(*) 统计行数，不因为某列为空而忽略该行。"),
+      q("A卷组2", "12", "参照完整性", "关于参照完整性，下列说法中不正确的是？", ["外码可以为空", "外码的值应等于被引用列中的某个值", "外码的类型应与被引用列类型相容", "外码列的名称必须与被引用列的名称相同"], "D", "外码名可以与被引用列名不同。"),
+      q("A卷组2", "13", "外码", "在关系模式 R(R#, RN, S#) 和 S(S#, SN, SD) 中，R 的主码是 R#，S 的主码是 S#，则 S# 在 R 中称为？", ["主码", "超码", "候选码", "外码"], "D", "R 中的 S# 引用 S 的主码，是外码。"),
+      q("A卷组2", "14", "故障", "以下哪种故障可能破坏数据库？", ["事务内部故障", "系统故障", "程序故障", "输入错误数据"], "D", "本卷选项中，输入错误数据最可能造成数据库内容被破坏。"),
+      q("A卷组2", "15", "完整性", "“年龄在 18-25 之间”这种约束属于哪种完整性？", ["实体完整性", "参照完整性", "用户定义的完整性", "全不是"], "C", "业务规则约束属于用户定义完整性。"),
+      q("A卷组2", "16", "事务", "一个事务的执行不能被其它事务干扰，称为事务的？", ["原子性", "隔离性", "一致性", "持久性"], "B", "隔离性强调并发事务之间互不干扰。"),
+      q("A卷组2", "17", "范式", "若 R ∈ 2NF，则 R 的每个什么应满足完全依赖于码？", ["主属性部分依赖于码", "主属性完全依赖于码", "非主属性部分依赖于码", "非主属性完全依赖于码"], "D", "2NF 消除非主属性对候选码的部分依赖。"),
+      q("A卷组2", "18", "E-R 转换", "若有 3 个不同实体型、1 个二元 M:N 联系和 2 个二元 1:N 联系，至少可转换为几个关系模式？", ["3", "4", "5", "6"], "B", "3 个实体成表，1 个 M:N 联系单独成表，1:N 并入 N 端，共 4 个。"),
+      q("A卷组2", "19", "范式", "关系模式 R(A,B,C) 中有函数依赖 F={AB→C, BC→A}，则 R 最高可达到？", ["1NF", "2NF", "3NF", "BCNF"], "D", "每个非平凡依赖的左部都是候选码，所以满足 BCNF。"),
+      q("A卷组2", "20", "规范化", "关系数据库的规范化理论主要解决的问题是？", ["如何构造合适的数据库物理结构", "如何构造合适的数据库逻辑结构", "如何构造合适的应用程序界面", "如何控制不同用户的数据操作权限"], "B", "规范化处理关系模式逻辑设计中的冗余和异常。")
+    ];
+
+    const extraQuestions = [
+      blank("2025 A卷", "填空1", "填空：三级模式", "SQL 支持数据库的三级模式结构，其中外模式通常对应____，模式通常对应____，内模式通常对应____。", [["视图"], ["基本表", "表"], ["存储文件", "文件"]], "外模式是用户视图；模式是全局逻辑结构，常对应基本表；内模式描述物理存储，常对应存储文件。"),
+      blank("2025 A卷", "填空2", "填空：函数依赖", "设 R(U,V,X,Y)，函数依赖为 {UV→XY, U→Y}，R 的候选码是____，R 最高属于____。", [["UV", "U,V"], ["1NF", "第一范式"]], "UV 能推出全部属性，是候选码；U→Y 是非主属性对组合码的部分依赖，因此不能达到 2NF。"),
+      blank("2025 A卷", "填空3", "填空：SQL 查询", "在 SELECT 语句中，要去掉查询结果中的重复记录，应使用____关键字。", [["DISTINCT"]], "DISTINCT 用于去重。"),
+      blank("2025 A卷", "填空4", "填空：数据独立性", "在数据库系统中，更换了存储数据文件的硬盘，系统业务逻辑无需改变，这一特性称为____。", [["物理独立性", "数据的物理独立性"]], "存储介质和物理结构变化而应用不变，体现物理独立性。"),
+      blank("2025 A卷", "填空5", "填空：视图", "视图的定义存储在____中。", [["数据字典", "系统目录"]], "视图本身通常不存储完整数据，其定义保存在数据字典/系统目录。"),
+      blank("2025 A卷", "填空6", "填空：事务", "事务一旦提交，对数据库的改变是永久的，这是事务的____性。", [["持久", "持久性"]], "提交后永久保存，对应 ACID 中的持久性。"),
+      blank("2025 A卷", "填空7", "填空：参照完整性", "员工(职工号,姓名,年龄,部门号) 和 部门(部门号,部门名称) 存在引用关系，其中____是参照关系，____是外码。", [["员工", "员工表"], ["部门号"]], "含有外码的一方是参照关系；员工表中的部门号引用部门表。"),
+      judge("2025 A卷", "判断1", "判断：安全性", "为确保数据的安全性，DBMS 采用电子签名原则。", false, "电子签名不是 DBMS 安全性的基本原则；数据库安全常考授权、身份鉴别、存取控制等。"),
+      judge("2025 A卷", "判断2", "判断：集合运算", "给定关系模式 R(X,Y) 和 S(Y,Z)，R 和 S 做除运算时，要求 R 中属性 Y 和 S 中属性 Y 必须来自同一个域。", true, "涉及同名/对应属性比较时要求域相容。"),
+      judge("2025 A卷", "判断3", "判断：物理设计", "数据库物理结构的设计独立于具体使用的 DBMS。", false, "物理设计依赖具体 DBMS 的存储结构、索引和存取方法。"),
+      judge("2025 A卷", "判断4", "判断：关系代数", "关系代数中，选择运算是从行的方向选择元组集合中的若干元素。", true, "选择 σ 是选行；投影 π 是选列。"),
+      judge("2025 A卷", "判断5", "判断：视图", "在创建视图的 SQL 语句中，不能包含 INSERT、UPDATE、DELETE 语句。", true, "CREATE VIEW 的定义通常是一个 SELECT 查询。"),
+      short("2025 A卷", "简答1", "简答：WHERE 与 HAVING", "试述 WHERE 子句与 HAVING 短语的区别。", "WHERE 用于分组前筛选行，作用于 FROM/WHERE 阶段的原始记录；HAVING 用于 GROUP BY 分组后筛选组，通常可使用聚集函数条件。"),
+      short("2025 A卷", "简答2", "简答：完整性约束", "SQL 提供了哪五类约束？分别对应关系模型中三类完整性约束的哪一个？", "常见 SQL 约束包括 PRIMARY KEY、FOREIGN KEY、UNIQUE、CHECK、NOT NULL。PRIMARY KEY 对应实体完整性；FOREIGN KEY 对应参照完整性；UNIQUE、CHECK、NOT NULL 常用于用户定义完整性。"),
+      short("2025 A卷", "简答3", "简答：SQL 建表", "创建表时如何指定主键、外键和取值范围？", "主键用 PRIMARY KEY；外键用 FOREIGN KEY (...) REFERENCES 被参照表(...); 取值范围可用 CHECK 条件，例如 CHECK(age BETWEEN 18 AND 60)。"),
+      short("2025 A卷", "简答4", "简答：E-R 图", "概念结构设计题中，画 E-R 图时至少要表达哪些信息？", "至少要有实体、实体间联系、联系类型或基数约束；若题目要求，还要画出联系属性和实体属性。"),
+      short("2025 A卷", "简答5", "简答：范式判断", "判断一个关系模式最高范式时，通常按什么步骤？", "先求候选码和主属性；检查是否 1NF；再看非主属性是否部分依赖于候选码以判断 2NF；再看是否存在非主属性传递依赖以判断 3NF；最后看每个非平凡函数依赖左部是否都是超码以判断 BCNF。"),
+
+      short("2024 B卷", "简述1", "简答：数据库定义", "简述数据库的定义。", "数据库是长期存储在计算机内、有组织、可共享的大量数据集合。"),
+      short("2024 B卷", "简述2", "简答：数据库设计阶段", "数据库设计通常包括哪几个阶段？", "常见阶段包括需求分析、概念结构设计、逻辑结构设计、物理结构设计、数据库实施、运行与维护。"),
+      short("2024 B卷", "简述3", "简答：事务与 ACID", "什么是事务？什么是事务的 ACID 属性？", "事务是用户定义的一个数据库操作序列，是不可分割的工作单位。ACID 指原子性、一致性、隔离性、持久性。"),
+      short("2024 B卷", "简述4", "简答：存取控制", "简述数据库中的自主存取控制方法和强制存取控制方法的含义。", "自主存取控制由对象拥有者或授权机制决定用户权限，典型语句是 GRANT/REVOKE；强制存取控制根据主体和客体的安全级别及规则控制访问。"),
+      short("2024 B卷", "简述5", "简答：完整性", "什么是数据库的完整性？SQL 提供哪些约束来实现完整性？", "完整性是指数据库中数据的正确性、有效性和相容性。SQL 可通过 PRIMARY KEY、FOREIGN KEY、UNIQUE、CHECK、NOT NULL 等约束实现。"),
+      short("2024 B卷", "关系代数1", "关系代数", "用关系代数表示：查询读者编号为 2024021 的学生姓名和所在系。", "可写作：π姓名,所在系(σ读者编号='2024021'(读者))。字段名按题目表结构等价替换即可。"),
+      short("2024 B卷", "关系代数2", "关系代数", "用关系代数表示：查询借阅了图书编号为 H313/45 的读者姓名和借阅日期。", "先在借阅表中选择图书编号为 H313/45 的记录，再与读者表连接，最后投影读者姓名和借阅日期。"),
+      short("2024 B卷", "关系代数3", "关系代数", "用关系代数表示：查询借阅了科学出版社且书名为“软件工程”的读者姓名和应还日期。", "图书表先选出版社和书名，再与借阅表、读者表连接，最后投影姓名和应还日期。"),
+      short("2024 B卷", "分解1", "简答：函数依赖", "给出关系模式“俱乐部会员信息”的极小函数依赖集和候选码。", "思路：先根据语义列出决定关系，如俱乐部名称决定俱乐部属性、学号决定学生基本属性、(俱乐部名称,学号) 决定加入时间等；候选码通常是能同时确定俱乐部和学生的组合。"),
+      short("2024 B卷", "分解2", "简答：3NF 分解", "如果“俱乐部会员信息”关系模式不属于 3NF，应如何分解？", "按决定因素分解：俱乐部信息单独成表，学生信息单独成表，会员/参加关系单独成表，消除非主属性对码的传递依赖。"),
+
+      short("2023 A卷", "简述1", "简答：数据库定义", "简述数据库的定义。", "数据库是长期存储在计算机内、有组织、可共享的大量数据集合。"),
+      short("2023 A卷", "简述2", "简答：数据独立性", "简述数据库系统中数据独立性的含义和实现机制。", "数据独立性包括逻辑独立性和物理独立性，通过三级模式和两级映像实现：外模式/模式映像保证逻辑独立性，模式/内模式映像保证物理独立性。"),
+      short("2023 A卷", "简述3", "简答：DBMS 功能", "数据库管理系统的主要功能有哪些？", "主要包括数据定义、数据组织/存储/管理、数据操纵、事务管理、并发控制、完整性控制、安全性控制、恢复、数据库维护等。"),
+      short("2023 A卷", "简述4", "简答：数据库设计阶段", "数据库设计包括哪六个阶段？", "需求分析、概念结构设计、逻辑结构设计、物理结构设计、数据库实施、数据库运行和维护。"),
+      short("2023 A卷", "简述5", "简答：安全技术", "数据库常用的安全技术有哪些？", "用户标识与鉴别、存取控制、视图机制、审计、数据加密、备份与恢复等。"),
+      short("2023 A卷", "关系代数1", "关系代数", "查询软件工程系学生的学号和姓名。", "对 Student 表按所在系='软件工程' 选择，再投影学号和姓名：π学号,姓名(σ所在系='软件工程'(Student))。"),
+      short("2023 A卷", "关系代数2", "关系代数", "查询选修 5 号课程且成绩大于 80 的学生学号、课程名和成绩。", "在 SC 中选 Cno=5 且 Grade>80，与 Course 连接得到课程名，再投影学号、课程名、成绩。"),
+      short("2023 A卷", "关系代数3", "关系代数", "查询选修了“软件测试”课程的学生学号、姓名和成绩。", "Course 先选课程名='软件测试'，再与 SC、Student 连接，最后投影学号、姓名、成绩。"),
+      short("2023 A卷", "E-R转换", "简答：E-R 转关系", "将 E-R 图转换为关系模式时，主键、外键如何确定？", "实体一般各转一个关系，实体标识符作主键；1:N 联系把 1 端主键加入 N 端作外键；M:N 联系单独成表，两端主键组合为主键并同时作外键；联系属性放入联系表或 N 端表。"),
+      short("2023 A卷", "SQL1", "SQL 操作", "写 SQL：创建 Employee 表和 Salary 表，并定义实体完整性、参照完整性和邮箱包含 @ 的约束。", "Employee 可用员工编号作 PRIMARY KEY，邮箱加 CHECK(email LIKE '%@%')；Salary 可用(月份,员工编号)作主键，员工编号作 FOREIGN KEY REFERENCES Employee(员工编号)。"),
+      short("2023 A卷", "SQL2", "SQL 操作", "写 SQL：将编号为 E06 的雇员 7 月份基本工资改为 1500，岗位津贴改为 1000。", "UPDATE Salary SET 基本工资=1500, 岗位津贴=1000 WHERE 雇员编号='E06' AND 月份=7;"),
+      short("2023 A卷", "SQL3", "SQL 操作", "写 SQL：查询基本工资总额大于 6000 元的雇员编号、姓名、工资发放次数、基本工资总额和月平均基本工资。", "Employee 与 Salary 按雇员编号连接，GROUP BY 雇员编号、姓名，HAVING SUM(基本工资)>6000，SELECT 中使用 COUNT(*)、SUM(基本工资)、AVG(基本工资)。"),
+
+      blank("A卷组1", "填空1", "填空：关系术语", "二维表中的行称为____，列称为____。", [["元组", "记录"], ["属性", "字段"]], "关系模型中，一行是元组/记录，一列是属性/字段。"),
+      blank("A卷组1", "填空2", "填空：SQL 分类", "CREATE、DROP、ALTER 属于 SQL 的____语言；INSERT、UPDATE、DELETE 属于____语言。", [["DDL", "数据定义语言"], ["DML", "数据操纵语言"]], "DDL 定义对象结构，DML 操纵数据。"),
+      blank("A卷组1", "填空3", "填空：关系代数", "关系代数中，选择运算符是____，投影运算符是____。", [["σ", "sigma"], ["π", "pi"]], "σ 选行，π 选列。"),
+      blank("A卷组1", "填空4", "填空：事务", "事务的四个特性 ACID 分别是____、____、____、____。", [["原子性"], ["一致性"], ["隔离性"], ["持久性"]], "ACID 是事务题的必背点。"),
+      blank("A卷组1", "填空5", "填空：外码", "若 R 中属性引用 S 的主码，则该属性在 R 中称为____。", [["外码", "外键"]], "引用其他关系主码的属性叫外码/外键。"),
+      judge("A卷组1", "判断1", "判断：关系模型", "关系中允许出现两个完全相同的元组。", false, "关系是集合，集合中不允许重复元素。"),
+      judge("A卷组1", "判断2", "判断：实体完整性", "主码中的属性可以取空值。", false, "实体完整性要求主码不能为空。"),
+      judge("A卷组1", "判断3", "判断：事务", "事务提交后，对数据库的改变应当永久保存。", true, "这是事务的持久性。"),
+      judge("A卷组1", "判断4", "判断：触发器", "SELECT 操作通常会激活基于数据修改的触发器。", false, "常见 DML 触发器由 INSERT、UPDATE、DELETE 激活。"),
+      judge("A卷组1", "判断5", "判断：视图", "视图一定存储完整的实际数据。", false, "视图通常是虚表，存储的是定义而不是完整数据。"),
+      short("A卷组1", "简答1", "简答：数据库设计", "数据库设计为什么要先进行概念结构设计？", "概念结构设计先用 E-R 模型抽象现实业务，独立于具体 DBMS，便于和用户沟通并为后续逻辑设计提供基础。"),
+      short("A卷组1", "简答2", "简答：关系模式分解", "关系模式分解时为什么要关注无损连接和保持函数依赖？", "无损连接保证分解后的关系能还原原关系，不丢失信息；保持函数依赖保证约束仍能在分解后的模式上有效检查。"),
+      short("A卷组1", "简答3", "简答：规范化作用", "数据库规范化的主要作用是什么？", "减少数据冗余，避免插入异常、删除异常、更新异常，提高数据一致性。"),
+      short("A卷组1", "简答4", "简答：并发异常", "并发事务可能导致哪些数据不一致问题？", "典型问题包括丢失修改、读脏数据、不可重复读，也可能出现幻读等。"),
+      short("A卷组1", "简答5", "简答：两段锁", "两段锁协议的基本思想是什么？", "事务分为加锁阶段和解锁阶段：先只申请锁，不释放锁；一旦释放锁，就不能再申请新锁。它可保证冲突可串行化。"),
+
+      blank("A卷组2", "填空1", "填空：三级模式", "数据库三级模式包括____、____、____。", [["外模式"], ["模式", "概念模式"], ["内模式"]], "三级模式是外模式、模式、内模式。"),
+      blank("A卷组2", "填空2", "填空：完整性", "关系模型的三类完整性约束是____、____、____。", [["实体完整性"], ["参照完整性"], ["用户定义的完整性", "用户自定义完整性"]], "三类完整性约束是实体、参照、用户定义完整性。"),
+      blank("A卷组2", "填空3", "填空：封锁", "X 锁又称____锁，S 锁又称____锁。", [["排他锁", "写锁"], ["共享锁", "读锁"]], "X 锁用于写，排斥其他读写；S 锁用于读，可共享读。"),
+      blank("A卷组2", "填空4", "填空：子查询", "SQL 中常用于引出子查询的谓词包括 IN、EXISTS 和____运算。", [["比较", "比较运算"]], "比较运算符也可以与子查询配合，如 > (SELECT ...)。"),
+      blank("A卷组2", "填空5", "填空：聚集函数", "COUNT(*) 统计的是____，COUNT(列名) 通常不统计该列为____的行。", [["行数", "记录数"], ["NULL", "空值"]], "COUNT(*) 不忽略空行；COUNT(列名) 忽略该列为 NULL 的行。"),
+      judge("A卷组2", "判断1", "判断：SQL 空值", "SQL 中判断某列为空可以写成 列名 = NULL。", false, "应写 IS NULL，不能用 = NULL。"),
+      judge("A卷组2", "判断2", "判断：外码", "外码列的名称必须与被引用列名称完全相同。", false, "外码列名可以不同，只要引用关系和类型相容。"),
+      judge("A卷组2", "判断3", "判断：自然连接", "自然连接必须至少有公共属性。", true, "自然连接按公共属性自动匹配。"),
+      judge("A卷组2", "判断4", "判断：3NF", "3NF 主要消除非主属性对码的传递依赖。", true, "从 2NF 到 3NF 的核心就是消除传递依赖。"),
+      judge("A卷组2", "判断5", "判断：逻辑独立性", "逻辑独立性通常通过模式与内模式之间的映像实现。", false, "模式/内模式映像保证物理独立性；外模式/模式映像保证逻辑独立性。"),
+      short("A卷组2", "简答1", "简答：ER 联系转换", "1:1、1:N、M:N 联系转换为关系模式时有什么区别？", "1:1 可在任一方加入对方主码作外码；1:N 通常把 1 端主码加入 N 端作外码；M:N 必须单独建立关系，通常以两端主码组合作主码。"),
+      short("A卷组2", "简答2", "简答：候选码求法", "求候选码的一般思路是什么？", "先找不出现在任何依赖右部的属性，它们通常必须属于候选码；再与其他属性组合求闭包，能推出全部属性且没有冗余的最小属性集就是候选码。"),
+      short("A卷组2", "简答3", "简答：视图优点", "视图在数据库中的作用有哪些？", "简化用户操作，提供不同用户视角，提高安全性，增强逻辑独立性，也可隐藏复杂查询和敏感字段。"),
+      short("A卷组2", "简答4", "简答：恢复", "数据库恢复的基本目标是什么？", "在故障后把数据库恢复到某个正确、一致的状态，保证已提交事务的结果保留，未提交事务的影响撤销。"),
+      short("A卷组2", "简答5", "简答：安全性与完整性", "数据库安全性和完整性有什么区别？", "安全性关注防止非法用户和非法操作；完整性关注数据是否正确、有效、相容。一个管“谁能做”，一个管“数据对不对”。")
+    ];
+
+    allQuestions.push(...extraQuestions);
+
+    const WRONG_KEY = "databaseQuizWrongQuestions.v1";
+    const ANSWERS_KEY = "databaseQuizAnswers.v1";
+    let order = [...allQuestions.keys()];
+    const state = {
+      pos: 0,
+      answers: loadAnswers(),
+      filtered: [...order],
+      wrongBook: loadWrongBook(),
+      wrongMode: false
+    };
+
+    const els = {
+      count: document.getElementById("count"),
+      done: document.getElementById("done"),
+      right: document.getElementById("right"),
+      wrongCount: document.getElementById("wrongCount"),
+      rate: document.getElementById("rate"),
+      bar: document.getElementById("bar"),
+      source: document.getElementById("source"),
+      topic: document.getElementById("topic"),
+      status: document.getElementById("status"),
+      question: document.getElementById("question"),
+      options: document.getElementById("options"),
+      explain: document.getElementById("explain"),
+      prev: document.getElementById("prev"),
+      next: document.getElementById("next"),
+      reset: document.getElementById("reset"),
+      wrongMode: document.getElementById("wrongMode"),
+      shuffle: document.getElementById("shuffle"),
+      clearWrong: document.getElementById("clearWrong"),
+      sourceFilter: document.getElementById("sourceFilter"),
+      topicFilter: document.getElementById("topicFilter"),
+      nav: document.getElementById("nav"),
+      breakdown: document.getElementById("breakdown"),
+      wrongList: document.getElementById("wrongList")
+    };
+
+    function loadWrongBook() {
+      try {
+        const raw = localStorage.getItem(WRONG_KEY);
+        const values = raw ? JSON.parse(raw) : [];
+        return new Set(values.filter(idx => Number.isInteger(idx) && allQuestions[idx]));
+      } catch {
+        return new Set();
+      }
+    }
+
+    function saveWrongBook() {
+      localStorage.setItem(WRONG_KEY, JSON.stringify([...state.wrongBook]));
+    }
+
+    function loadAnswers() {
+      try {
+        const raw = localStorage.getItem(ANSWERS_KEY);
+        const values = raw ? JSON.parse(raw) : [];
+        const entries = values
+          .filter(([idx, value]) => Number.isInteger(idx) && allQuestions[idx] && value && typeof value.correct === "boolean")
+          .map(([idx, value]) => [idx, { ...value, correct: Boolean(value.correct) }]);
+        return new Map(entries);
+      } catch {
+        return new Map();
+      }
+    }
+
+    function saveAnswers() {
+      localStorage.setItem(ANSWERS_KEY, JSON.stringify([...state.answers.entries()]));
+    }
+
+    function unique(values) {
+      return [...new Set(values)];
+    }
+
+    function fillFilters() {
+      const sources = unique(allQuestions.map(item => item.source));
+      const topics = unique(allQuestions.map(item => item.topic)).sort((a, b) => a.localeCompare(b, "zh-CN"));
+      els.sourceFilter.innerHTML = `<option value="">全部试卷</option>` + sources.map(v => `<option>${v}</option>`).join("");
+      els.topicFilter.innerHTML = `<option value="">全部知识点</option>` + topics.map(v => `<option>${v}</option>`).join("");
+    }
+
+    function applyFilters() {
+      const source = els.sourceFilter.value;
+      const topic = els.topicFilter.value;
+      state.filtered = order.filter(idx => {
+        const item = allQuestions[idx];
+        return (!state.wrongMode || state.wrongBook.has(idx))
+          && (!source || item.source === source)
+          && (!topic || item.topic === topic);
+      });
+      state.pos = 0;
+      render();
+    }
+
+    function currentIndex() {
+      return state.filtered[state.pos];
+    }
+
+    function currentQuestion() {
+      return allQuestions[currentIndex()];
+    }
+
+    function render() {
+      if (state.filtered.length === 0) {
+        els.source.textContent = "无题目";
+        els.topic.textContent = "请调整筛选";
+        els.status.textContent = "";
+        els.question.textContent = "当前筛选条件下没有题目。";
+        els.options.innerHTML = "";
+        els.explain.style.display = "none";
+        renderStats();
+        renderNav();
+        renderBreakdown();
+        renderWrongList();
+        return;
+      }
+
+      const idx = currentIndex();
+      const item = currentQuestion();
+      const existing = state.answers.get(idx);
+      els.source.textContent = `${item.source} · 第 ${item.no} 题`;
+      els.topic.textContent = item.topic;
+      els.question.textContent = item.text;
+      els.options.innerHTML = "";
+      els.status.textContent = statusText(item, existing);
+      els.status.style.color = existing ? (existing.correct ? "var(--ok)" : "var(--bad)") : "var(--ink)";
+      els.explain.innerHTML = explanationHtml(item);
+      els.explain.style.display = existing ? "block" : "none";
+
+      if (item.type === "judge") {
+        renderJudge(item, existing);
+      } else if (item.type === "blank") {
+        renderBlank(item, existing);
+      } else if (item.type === "short") {
+        renderShort(item, existing);
+      } else {
+        renderChoice(item, existing);
+      }
+
+      renderStats();
+      renderNav();
+      renderBreakdown();
+      renderWrongList();
+    }
+
+    function statusText(item, existing) {
+      if (!existing) {
+        if (item.type === "short") return "先作答，再看参考答案";
+        if (item.type === "blank") return "填写后核对";
+        return "请选择一个答案";
+      }
+      if (item.type === "short") return existing.correct ? "已掌握 ✅" : "待复习 ❌";
+      return existing.correct ? "答对了 ✅" : "答错了 ❌";
+    }
+
+    function answerLabel(item) {
+      if (item.type === "blank") {
+        return item.answers.map(group => group[0]).join(" / ");
+      }
+      if (item.type === "judge") {
+        return item.answer ? "正确" : "错误";
+      }
+      if (item.type === "short") {
+        return item.sample;
+      }
+      return item.options[item.answer];
+    }
+
+    function explanationHtml(item) {
+      if (item.type === "short") {
+        return `<strong>讲解：</strong>${item.explain}`;
+      }
+      return `<strong>参考答案：</strong>${answerLabel(item)}<br><strong>讲解：</strong>${item.explain}`;
+    }
+
+    function renderChoice(item, existing) {
+      item.options.forEach((text, optionIndex) => {
+        const button = document.createElement("button");
+        button.className = "option";
+        button.type = "button";
+        button.innerHTML = `<span class="letter">${String.fromCharCode(65 + optionIndex)}</span><span>${text}</span><span class="mark"></span>`;
+        button.addEventListener("click", () => choose(optionIndex));
+        if (existing) {
+          button.disabled = true;
+          const mark = button.querySelector(".mark");
+          if (optionIndex === item.answer) {
+            button.classList.add("correct");
+            mark.textContent = "✅";
+          }
+          if (optionIndex === existing.pick && !existing.correct) {
+            button.classList.add("wrong");
+            mark.textContent = "❌";
+          }
+        }
+        els.options.appendChild(button);
+      });
+    }
+
+    function renderJudge(item, existing) {
+      [
+        { label: "正确", value: true },
+        { label: "错误", value: false }
+      ].forEach((entry, optionIndex) => {
+        const button = document.createElement("button");
+        button.className = "option";
+        button.type = "button";
+        button.innerHTML = `<span class="letter">${optionIndex ? "F" : "T"}</span><span>${entry.label}</span><span class="mark"></span>`;
+        button.addEventListener("click", () => chooseJudge(entry.value));
+        if (existing) {
+          button.disabled = true;
+          const mark = button.querySelector(".mark");
+          if (entry.value === item.answer) {
+            button.classList.add("correct");
+            mark.textContent = "✅";
+          }
+          if (entry.value === existing.pick && !existing.correct) {
+            button.classList.add("wrong");
+            mark.textContent = "❌";
+          }
+        }
+        els.options.appendChild(button);
+      });
+    }
+
+    function renderBlank(item, existing) {
+      const work = document.createElement("div");
+      work.className = "work-area";
+      item.answers.forEach((answerGroup, idx) => {
+        const input = document.createElement("input");
+        input.className = "blank-input";
+        input.placeholder = item.answers.length > 1 ? `第 ${idx + 1} 空` : "在这里输入答案";
+        input.value = existing?.pick?.[idx] || "";
+        input.disabled = Boolean(existing);
+        work.appendChild(input);
+      });
+
+      const submit = document.createElement("button");
+      submit.className = "btn primary";
+      submit.type = "button";
+      submit.textContent = existing ? "已核对" : "提交并核对";
+      submit.disabled = Boolean(existing);
+      submit.addEventListener("click", () => submitBlank([...work.querySelectorAll("input")].map(input => input.value)));
+      work.appendChild(submit);
+      els.options.appendChild(work);
+    }
+
+    function renderShort(item, existing) {
+      const work = document.createElement("div");
+      work.className = "work-area";
+
+      const textarea = document.createElement("textarea");
+      textarea.className = "answer-box";
+      textarea.placeholder = "先写你的答案。意思对即可，不用和参考答案逐字一样。";
+      textarea.value = existing?.pick || "";
+      textarea.disabled = Boolean(existing);
+      work.appendChild(textarea);
+
+      const reveal = document.createElement("button");
+      reveal.className = "btn primary";
+      reveal.type = "button";
+      reveal.textContent = existing ? "已显示参考答案" : "显示参考答案";
+      work.appendChild(reveal);
+
+      const answerCard = document.createElement("div");
+      answerCard.className = "answer-card";
+      answerCard.innerHTML = `<strong>参考答案：</strong>${item.sample}`;
+      if (existing) answerCard.style.display = "block";
+      work.appendChild(answerCard);
+
+      const selfActions = document.createElement("div");
+      selfActions.className = "self-actions";
+      selfActions.innerHTML = `
+        <button class="btn ok" type="button" data-self="ok">意思对，标记掌握</button>
+        <button class="btn danger" type="button" data-self="bad">还不熟，加入错题</button>
+      `;
+      if (!existing) selfActions.style.display = "none";
+      if (existing) selfActions.style.display = "grid";
+      work.appendChild(selfActions);
+
+      reveal.addEventListener("click", () => {
+        answerCard.style.display = "block";
+        selfActions.style.display = "grid";
+        reveal.disabled = true;
+      });
+
+      selfActions.querySelector('[data-self="ok"]').addEventListener("click", () => markShort(textarea.value, true));
+      selfActions.querySelector('[data-self="bad"]').addEventListener("click", () => markShort(textarea.value, false));
+      els.options.appendChild(work);
+    }
+
+    function recordAnswer(idx, value) {
+      state.answers.set(idx, value);
+      if (value.correct) {
+        state.wrongBook.delete(idx);
+      } else {
+        state.wrongBook.add(idx);
+      }
+      saveWrongBook();
+      saveAnswers();
+      render();
+    }
+
+    function choose(optionIndex) {
+      const idx = currentIndex();
+      const item = allQuestions[idx];
+      if (state.answers.has(idx)) return;
+      const correct = optionIndex === item.answer;
+      recordAnswer(idx, {
+        pick: optionIndex,
+        correct
+      });
+    }
+
+    function chooseJudge(value) {
+      const idx = currentIndex();
+      const item = allQuestions[idx];
+      if (state.answers.has(idx)) return;
+      recordAnswer(idx, {
+        pick: value,
+        correct: value === item.answer
+      });
+    }
+
+    function normalize(value) {
+      return String(value || "").toLowerCase().replace(/[\s，。、“”‘’'":：；;,.()（）]/g, "");
+    }
+
+    function submitBlank(values) {
+      const idx = currentIndex();
+      const item = allQuestions[idx];
+      if (state.answers.has(idx)) return;
+      const correct = item.answers.every((answerGroup, answerIndex) => {
+        const value = normalize(values[answerIndex]);
+        return value && answerGroup.some(candidate => {
+          const expected = normalize(candidate);
+          return value.includes(expected) || expected.includes(value);
+        });
+      });
+      recordAnswer(idx, {
+        pick: values,
+        correct
+      });
+    }
+
+    function markShort(value, mastered) {
+      const idx = currentIndex();
+      recordAnswer(idx, {
+        pick: value || "已查看参考答案",
+        correct: mastered,
+        subjective: true
+      });
+    }
+
+    function renderStats() {
+      const done = state.answers.size;
+      const right = [...state.answers.values()].filter(v => v.correct).length;
+      const rate = done ? Math.round((right / done) * 100) : 0;
+      const total = state.filtered.length || 0;
+      els.count.textContent = total ? `${state.pos + 1} / ${total}` : `0 / 0`;
+      els.done.textContent = done;
+      els.right.textContent = right;
+      els.wrongCount.textContent = state.wrongBook.size;
+      els.rate.textContent = `${rate}%`;
+      els.bar.style.width = `${Math.round((done / allQuestions.length) * 100)}%`;
+      els.wrongMode.textContent = state.wrongMode ? "查看全部题" : "只看错题";
+      els.wrongMode.classList.toggle("active", state.wrongMode);
+    }
+
+    function renderNav() {
+      els.nav.innerHTML = "";
+      state.filtered.forEach((idx, navIndex) => {
+        const item = allQuestions[idx];
+        const result = state.answers.get(idx);
+        const button = document.createElement("button");
+        button.className = "nav-q";
+        if (navIndex === state.pos) button.classList.add("current");
+        if (result) button.classList.add(result.correct ? "ok" : "bad");
+        button.type = "button";
+        button.textContent = `${navIndex + 1}`;
+        button.title = `${item.source} 第 ${item.no} 题`;
+        button.addEventListener("click", () => {
+          state.pos = navIndex;
+          render();
+        });
+        els.nav.appendChild(button);
+      });
+    }
+
+    function renderBreakdown() {
+      const counts = {};
+      state.filtered.forEach(idx => {
+        const topic = allQuestions[idx].topic;
+        counts[topic] = (counts[topic] || 0) + 1;
+      });
+      els.breakdown.innerHTML = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh-CN"))
+        .map(([topic, count]) => `<div class="break-item"><span>${topic}</span><strong>${count}</strong></div>`)
+        .join("");
+    }
+
+    function renderWrongList() {
+      const wrongItems = [...state.wrongBook]
+        .filter(idx => allQuestions[idx])
+        .sort((a, b) => a - b);
+
+      if (!wrongItems.length) {
+        els.wrongList.innerHTML = `<p class="empty">暂时没有错题。答错后会自动收进这里；之后重新做对会自动移出。</p>`;
+        els.clearWrong.disabled = true;
+        return;
+      }
+
+      els.clearWrong.disabled = false;
+      els.wrongList.innerHTML = "";
+      wrongItems.forEach(idx => {
+        const item = allQuestions[idx];
+        const button = document.createElement("button");
+        button.className = "wrong-item";
+        button.type = "button";
+        button.innerHTML = `<strong>${item.source} · 第 ${item.no} 题 · ${item.topic}</strong><span>${item.text}</span>`;
+        button.addEventListener("click", () => {
+          if (state.wrongMode || !state.filtered.includes(idx)) {
+            state.wrongMode = true;
+            applyFilters();
+          }
+          const target = state.filtered.indexOf(idx);
+          if (target >= 0) {
+            state.pos = target;
+            render();
+          }
+        });
+        els.wrongList.appendChild(button);
+      });
+    }
+
+    function move(delta) {
+      if (!state.filtered.length) return;
+      state.pos = (state.pos + delta + state.filtered.length) % state.filtered.length;
+      render();
+    }
+
+    function shuffle() {
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      applyFilters();
+    }
+
+    function toggleWrongMode() {
+      state.wrongMode = !state.wrongMode;
+      applyFilters();
+    }
+
+    function clearWrongBook() {
+      if (!state.wrongBook.size) return;
+      state.wrongBook.clear();
+      saveWrongBook();
+      if (state.wrongMode) {
+        applyFilters();
+      } else {
+        render();
+      }
+    }
+
+    function reset() {
+      state.answers.clear();
+      localStorage.removeItem(ANSWERS_KEY);
+      state.pos = 0;
+      render();
+    }
+
+    els.prev.addEventListener("click", () => move(-1));
+    els.next.addEventListener("click", () => move(1));
+    els.reset.addEventListener("click", reset);
+    els.wrongMode.addEventListener("click", toggleWrongMode);
+    els.shuffle.addEventListener("click", shuffle);
+    els.clearWrong.addEventListener("click", clearWrongBook);
+    els.sourceFilter.addEventListener("change", applyFilters);
+    els.topicFilter.addEventListener("change", applyFilters);
+
+    fillFilters();
+    applyFilters();
+
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

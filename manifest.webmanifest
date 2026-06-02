@@ -1,0 +1,19 @@
+{
+  "name": "数据库概论刷题台",
+  "short_name": "数据库刷题",
+  "description": "数据库概论期末刷题、错题和离线复习工具。",
+  "start_url": "./database-quiz.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0f5fc2",
+  "icons": [
+    {
+      "src": "./icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
