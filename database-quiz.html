@@ -103,7 +103,7 @@
 
     .toolbar {
       display: grid;
-      grid-template-columns: 1fr 1fr auto auto;
+      grid-template-columns: 1fr 1fr 1fr auto auto;
       gap: 12px;
       margin: 6px 0 14px;
       padding: 12px;
@@ -509,6 +509,10 @@
         <label for="topicFilter">按知识点筛选</label>
         <select id="topicFilter"></select>
       </div>
+      <div class="field">
+        <label for="categoryFilter">按大题分类</label>
+        <select id="categoryFilter"></select>
+      </div>
       <button class="btn" id="wrongMode" type="button">只看错题</button>
       <button class="btn ghost" id="shuffle" type="button">随机顺序</button>
     </section>
@@ -521,6 +525,7 @@
           <div class="meta">
             <span class="pill source" id="source"></span>
             <span class="pill" id="topic"></span>
+            <span class="pill" id="category"></span>
           </div>
           <strong class="status" id="status">请选择一个答案</strong>
         </div>
@@ -544,6 +549,10 @@
         <div class="panel">
           <h3>知识点统计</h3>
           <div class="breakdown" id="breakdown"></div>
+        </div>
+        <div class="panel">
+          <h3>综合大题分类</h3>
+          <div class="breakdown" id="categoryBreakdown"></div>
         </div>
         <div class="panel">
           <h3>我的错题</h3>
@@ -814,6 +823,29 @@
 
     allQuestions.push(...extraQuestions);
 
+    function categoryFor(item) {
+      if (item.type !== "short") return "客观基础题";
+      const text = `${item.no} ${item.topic} ${item.text}`;
+      if (/SQL|数据定义|数据操作|建表|SELECT|CREATE|UPDATE|INSERT|DELETE|ALTER/.test(text)) return "SQL 操作题";
+      if (/关系代数|π|σ|投影|选择/.test(text)) return "关系代数题";
+      if (/E-R 转|ER 联系转换|转换为关系模式|逻辑设计/.test(text)) return "E-R 转关系题";
+      if (/E-R 图|概念设计|概念结构|概念模型设计/.test(text)) return "E-R 概念设计题";
+      if (/函数依赖|候选码|范式|3NF|BCNF|分解|闭包|无损连接|保持函数依赖/.test(text)) return "函数依赖与范式题";
+      if (/事务|ACID|恢复|并发|存取控制|安全|完整性|约束|视图|WHERE|HAVING|DBMS|数据库定义|数据库设计阶段|数据独立性/.test(text)) return "概念简答题";
+      return "综合应用题";
+    }
+
+    const categoryOrder = [
+      "SQL 操作题",
+      "关系代数题",
+      "E-R 概念设计题",
+      "E-R 转关系题",
+      "函数依赖与范式题",
+      "概念简答题",
+      "综合应用题",
+      "客观基础题"
+    ];
+
     const WRONG_KEY = "databaseQuizWrongQuestions.v1";
     const ANSWERS_KEY = "databaseQuizAnswers.v1";
     let order = [...allQuestions.keys()];
@@ -834,6 +866,7 @@
       bar: document.getElementById("bar"),
       source: document.getElementById("source"),
       topic: document.getElementById("topic"),
+      category: document.getElementById("category"),
       status: document.getElementById("status"),
       question: document.getElementById("question"),
       options: document.getElementById("options"),
@@ -846,8 +879,10 @@
       clearWrong: document.getElementById("clearWrong"),
       sourceFilter: document.getElementById("sourceFilter"),
       topicFilter: document.getElementById("topicFilter"),
+      categoryFilter: document.getElementById("categoryFilter"),
       nav: document.getElementById("nav"),
       breakdown: document.getElementById("breakdown"),
+      categoryBreakdown: document.getElementById("categoryBreakdown"),
       wrongList: document.getElementById("wrongList")
     };
 
@@ -889,18 +924,22 @@
     function fillFilters() {
       const sources = unique(allQuestions.map(item => item.source));
       const topics = unique(allQuestions.map(item => item.topic)).sort((a, b) => a.localeCompare(b, "zh-CN"));
+      const categories = categoryOrder.filter(category => allQuestions.some(item => categoryFor(item) === category));
       els.sourceFilter.innerHTML = `<option value="">全部试卷</option>` + sources.map(v => `<option>${v}</option>`).join("");
       els.topicFilter.innerHTML = `<option value="">全部知识点</option>` + topics.map(v => `<option>${v}</option>`).join("");
+      els.categoryFilter.innerHTML = `<option value="">全部大题分类</option>` + categories.map(v => `<option>${v}</option>`).join("");
     }
 
     function applyFilters() {
       const source = els.sourceFilter.value;
       const topic = els.topicFilter.value;
+      const category = els.categoryFilter.value;
       state.filtered = order.filter(idx => {
         const item = allQuestions[idx];
         return (!state.wrongMode || state.wrongBook.has(idx))
           && (!source || item.source === source)
-          && (!topic || item.topic === topic);
+          && (!topic || item.topic === topic)
+          && (!category || categoryFor(item) === category);
       });
       state.pos = 0;
       render();
@@ -918,6 +957,7 @@
       if (state.filtered.length === 0) {
         els.source.textContent = "无题目";
         els.topic.textContent = "请调整筛选";
+        els.category.textContent = "";
         els.status.textContent = "";
         els.question.textContent = "当前筛选条件下没有题目。";
         els.options.innerHTML = "";
@@ -925,6 +965,7 @@
         renderStats();
         renderNav();
         renderBreakdown();
+        renderCategoryBreakdown();
         renderWrongList();
         return;
       }
@@ -934,6 +975,7 @@
       const existing = state.answers.get(idx);
       els.source.textContent = `${item.source} · 第 ${item.no} 题`;
       els.topic.textContent = item.topic;
+      els.category.textContent = categoryFor(item);
       els.question.textContent = item.text;
       els.options.innerHTML = "";
       els.status.textContent = statusText(item, existing);
@@ -954,6 +996,7 @@
       renderStats();
       renderNav();
       renderBreakdown();
+      renderCategoryBreakdown();
       renderWrongList();
     }
 
@@ -1212,6 +1255,18 @@
         .join("");
     }
 
+    function renderCategoryBreakdown() {
+      const counts = {};
+      state.filtered.forEach(idx => {
+        const category = categoryFor(allQuestions[idx]);
+        counts[category] = (counts[category] || 0) + 1;
+      });
+      els.categoryBreakdown.innerHTML = categoryOrder
+        .filter(category => counts[category])
+        .map(category => `<div class="break-item"><span>${category}</span><strong>${counts[category]}</strong></div>`)
+        .join("");
+    }
+
     function renderWrongList() {
       const wrongItems = [...state.wrongBook]
         .filter(idx => allQuestions[idx])
@@ -1230,7 +1285,7 @@
         const button = document.createElement("button");
         button.className = "wrong-item";
         button.type = "button";
-        button.innerHTML = `<strong>${item.source} · 第 ${item.no} 题 · ${item.topic}</strong><span>${item.text}</span>`;
+        button.innerHTML = `<strong>${item.source} · 第 ${item.no} 题 · ${item.topic} · ${categoryFor(item)}</strong><span>${item.text}</span>`;
         button.addEventListener("click", () => {
           if (state.wrongMode || !state.filtered.includes(idx)) {
             state.wrongMode = true;
@@ -1291,6 +1346,7 @@
     els.clearWrong.addEventListener("click", clearWrongBook);
     els.sourceFilter.addEventListener("change", applyFilters);
     els.topicFilter.addEventListener("change", applyFilters);
+    els.categoryFilter.addEventListener("change", applyFilters);
 
     fillFilters();
     applyFilters();
